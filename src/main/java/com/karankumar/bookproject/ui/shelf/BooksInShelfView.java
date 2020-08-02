@@ -166,13 +166,11 @@ public class BooksInShelfView extends VerticalLayout {
     }
 
     private String combineTitleAndSeries(Book book) {
-        String result;
-        if (book.getSeriesPosition() != null && book.getSeriesPosition() > 0) {
-            result = String.format("%s (#%d)", book.getTitle(), book.getSeriesPosition());
-        } else {
-            result = book.getTitle();
+        if (book.existsSeriesPosition()) {
+            return String.format("%s (#%d)", book.getTitle(), book.getSeriesPosition());
         }
-        return result;
+
+        return book.getTitle();
     }
 
     private void configureBookGrid() {
