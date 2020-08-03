@@ -1,9 +1,14 @@
 package com.karankumar.bookproject.ui.shelf;
 
 import com.karankumar.bookproject.backend.entity.Book;
+<<<<<<< HEAD
 import com.karankumar.bookproject.backend.entity.PredefinedShelf;
 import com.karankumar.bookproject.backend.service.PredefinedShelfService;
 import com.karankumar.bookproject.ui.shelf.listener.BookGridListener;
+=======
+import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.HasValue;
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.renderer.LocalDateRenderer;
 import lombok.extern.java.Log;
@@ -11,9 +16,14 @@ import lombok.extern.java.Log;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Comparator;
+<<<<<<< HEAD
 import java.util.List;
+=======
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+
+import static com.karankumar.bookproject.ui.shelf.BooksInShelfView.*;
 
 import static com.karankumar.bookproject.ui.shelf.BooksInShelfView.*;
 
@@ -26,7 +36,11 @@ public class BookGrid {
         this.bookGrid = bookGrid;
     }
 
+<<<<<<< HEAD
     public void configure(BookGridListener listener) {
+=======
+    public void configure(HasValue.ValueChangeListener<? super AbstractField.ComponentValueChangeEvent<Grid<Book>, Book>> listener) {
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
         addListener(listener);
 
         resetGridColumns();
@@ -41,8 +55,13 @@ public class BookGrid {
         bookGrid.addColumn(PAGES_READ_KEY);
     }
 
+<<<<<<< HEAD
     private void addListener(BookGridListener listener) {
         bookGrid.asSingleSelect().addValueChangeListener(listener.getListener());
+=======
+    private void addListener(HasValue.ValueChangeListener listener) {
+        bookGrid.asSingleSelect().addValueChangeListener(listener);
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
     }
 
     private void resetGridColumns() {
