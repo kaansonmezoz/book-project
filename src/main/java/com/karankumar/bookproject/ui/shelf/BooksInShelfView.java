@@ -24,10 +24,7 @@ import com.karankumar.bookproject.ui.book.BookForm;
 import com.karankumar.bookproject.ui.shelf.listener.BookDeleteListener;
 import com.karankumar.bookproject.ui.shelf.listener.BookGridListener;
 import com.karankumar.bookproject.ui.shelf.listener.BookSaveListener;
-import com.karankumar.bookproject.ui.shelf.visibility.DidntFinishBookVisibility;
-import com.karankumar.bookproject.ui.shelf.visibility.ReadBookVisibility;
-import com.karankumar.bookproject.ui.shelf.visibility.ReadingBookVisibility;
-import com.karankumar.bookproject.ui.shelf.visibility.ToReadBookVisibility;
+import com.karankumar.bookproject.ui.shelf.visibility.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -41,10 +38,13 @@ import com.vaadin.flow.router.RouteAlias;
 import lombok.extern.java.Log;
 
 import javax.transaction.NotSupportedException;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+
+import static com.karankumar.bookproject.backend.entity.PredefinedShelf.ShelfName.*;
 
 /**
  * Contains a @see BookForm and a grid containing a list of books in a given shelf.
@@ -55,6 +55,8 @@ import java.util.stream.Collectors;
 @Log
 public class BooksInShelfView extends VerticalLayout {
     // TODO: 3.08.2020 Encapsulate these variables. visibility should be package-access
+    // todo: bu branchte çok fazla eleman var cherry-pick ile buradan tek tek toparlayacağım cımmit ler ve gidip başka bir branchte pushlayacağım
+    // TODO: 3.08.2020 ardından da pr açılacak
     public static final String TITLE_KEY = "title";
     public static final String AUTHOR_KEY = "author";
     public static final String GENRE_KEY = "genre";
@@ -66,6 +68,8 @@ public class BooksInShelfView extends VerticalLayout {
 
     public final Grid<Book> bookGrid;
     public final ComboBox<PredefinedShelf.ShelfName> whichShelf;
+
+    private final EnumMap<PredefinedShelf.ShelfName, BookVisibilityStrategy> visibilityStrategies;
 
     private final BookForm bookForm;
     private final BookService bookService;
@@ -80,8 +84,8 @@ public class BooksInShelfView extends VerticalLayout {
     public BooksInShelfView(BookService bookService, PredefinedShelfService shelfService) {
         this.bookService = bookService;
         this.shelfService = shelfService;
-
-        bookGrid = new Grid<>(Book.class);
+        this.visibilityStrategies = initVisibilityStrategies();
+        this.bookGrid = new Grid<>(Book.class);
 
         whichShelf = new ComboBox<>();
         configureChosenShelf();
@@ -105,6 +109,16 @@ public class BooksInShelfView extends VerticalLayout {
 
         new BookSaveListener(bookService, this).bind(bookForm);
         new BookDeleteListener(bookService, this).bind(bookForm);
+    }
+
+    private EnumMap<PredefinedShelf.ShelfName, BookVisibilityStrategy> initVisibilityStrategies() {
+        EnumMap<PredefinedShelf.ShelfName, BookVisibilityStrategy> m = new EnumMap<>(PredefinedShelf.ShelfName.class);
+        m.put(TO_READ, new ToReadBookVisibility());
+        m.put(READING, new ReadingBookVisibility());
+        m.put(DID_NOT_FINISH, new DidntFinishBookVisibility());
+        m.put(READ, new ReadBookVisibility());
+
+        return m;
     }
 
     private void configureChosenShelf() {
@@ -133,22 +147,13 @@ public class BooksInShelfView extends VerticalLayout {
     // TODO: 3.08.2020 Burayı strategy pattern ile çözelim
     void showOrHideGridColumns(PredefinedShelf.ShelfName shelfName) throws NotSupportedException {
         BookGrid bookGrid = new BookGrid(this.bookGrid);
+        visibilityStrategies.get(shelfName);
 
-        switch (shelfName) {
-            case TO_READ:
-                new ToReadBookVisibility().toggleColumnVisibility(bookGrid);
-                return;
-            case READING:
-                new ReadingBookVisibility().toggleColumnVisibility(bookGrid);
-                return;
-            case DID_NOT_FINISH:
-                new DidntFinishBookVisibility().toggleColumnVisibility(bookGrid);
-                return;
-            case READ:
-                new ReadBookVisibility().toggleColumnVisibility(bookGrid);
-                return;
+        if (visibilityStrategies.containsKey(shelfName)) {
+            throw new NotSupportedException("Shelf " + shelfName + " has not been added as a case in switch statement.");
         }
-        throw new NotSupportedException("Shelf " + shelfName + " has not been added as a case in switch statement.");
+
+        visibilityStrategies.get(shelfName).toggleColumnVisibility(bookGrid);
     }
 
 
