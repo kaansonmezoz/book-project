@@ -40,7 +40,6 @@ import lombok.extern.java.Log;
 import javax.transaction.NotSupportedException;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -78,21 +77,20 @@ public class BooksInShelfView extends VerticalLayout {
     private final TextField filterByAuthorName;
 
     private PredefinedShelf.ShelfName chosenShelf;
-    private String bookTitle; // the book to filter by (if specified)
-    private String authorName;
+    private final BookFilters bookFilters;
 
     public BooksInShelfView(BookService bookService, PredefinedShelfService shelfService) {
         this.bookService = bookService;
         this.shelfService = shelfService;
         this.visibilityStrategies = initVisibilityStrategies();
         this.bookGrid = new Grid<>(Book.class);
+        this.bookFilters = new BookFilters();
 
         whichShelf = new ComboBox<>();
         configureChosenShelf();
 
-        filterByTitle = new TextField();
-        filterByAuthorName = new TextField();
-        configureFilters();
+        filterByTitle = initializeFilterByTitle();
+        filterByAuthorName = initializeFilterByAuthorName();
 
         bookForm = new BookForm(shelfService);
 
@@ -107,6 +105,7 @@ public class BooksInShelfView extends VerticalLayout {
 
         add(bookForm);
 
+        // bind listeners gibisinden bir şey olsun burada
         new BookSaveListener(bookService, this).bind(bookForm);
         new BookDeleteListener(bookService, this).bind(bookForm);
     }
@@ -119,6 +118,38 @@ public class BooksInShelfView extends VerticalLayout {
         m.put(READ, new ReadBookVisibility());
 
         return m;
+    }
+
+    private TextField initializeFilterByAuthorName() {
+        TextField filterByAuthorName = new TextField();
+
+        filterByAuthorName.setPlaceholder("Filter by Author Name");
+        filterByAuthorName.setClearButtonVisible(true);
+        filterByAuthorName.setValueChangeMode(ValueChangeMode.LAZY);
+        filterByAuthorName.addValueChangeListener(eventFilterAuthorName -> {
+            if (eventFilterAuthorName.getValue() != null) {
+                bookFilters.setBookAuthor(eventFilterAuthorName.getValue());
+            }
+            updateGrid();
+        });
+
+        return filterByAuthorName;
+    }
+
+    private TextField initializeFilterByTitle() {
+        TextField filterByTitle = new TextField();
+
+        filterByTitle.setPlaceholder("Filter by book title");
+        filterByTitle.setClearButtonVisible(true);
+        filterByTitle.setValueChangeMode(ValueChangeMode.LAZY);
+        filterByTitle.addValueChangeListener(event -> {
+            if (event.getValue() != null) {
+                bookFilters.setBookTitle(event.getValue());
+            }
+            updateGrid();
+        });
+
+        return filterByTitle;
     }
 
     private void configureChosenShelf() {
@@ -170,60 +201,23 @@ public class BooksInShelfView extends VerticalLayout {
         // Find the shelf that matches the chosen shelf's name
         List<PredefinedShelf> matchingShelves = shelfService.findAll(chosenShelf);
 
-        if (!matchingShelves.isEmpty()) {
-            if (matchingShelves.size() == 1) { // TODO: 3.08.2020 what the fucking is going on here !?
-                LOGGER.log(Level.INFO, "Found 1 shelf: " + matchingShelves.get(0));
-                PredefinedShelf selectedShelf = matchingShelves.get(0);
-                Predicate<Book> caseInsensitiveBookTitleFilter = book -> bookTitle == null
-                        || book.getTitle().toLowerCase().contains(bookTitle.toLowerCase());
-                Predicate<Book> caseInsensitiveAuthorFilter =
-                        authorNameFilter ->
-                                authorName == null
-                                        || authorNameFilter
-                                        .getAuthor()
-                                        .toString()
-                                        .toLowerCase()
-                                        .contains(authorName.toLowerCase());
-                bookGrid.setItems(
-                        selectedShelf.getBooks().stream()
-                                .filter(caseInsensitiveBookTitleFilter)
-                                .filter(caseInsensitiveAuthorFilter)
-                                .collect(Collectors.toList()));
-            } else {
-                LOGGER.log(
-                        Level.SEVERE, matchingShelves.size() + " matching shelves found for " + chosenShelf);
-            }
-        } else {
+        if (matchingShelves.isEmpty()) {
             LOGGER.log(Level.SEVERE, "No matching shelves found for " + chosenShelf);
+            return;
         }
+
+        if (matchingShelves.size() != 1) {
+            LOGGER.log(Level.SEVERE, matchingShelves.size() + " matching shelves found for " + chosenShelf);
+            return;
+        }
+
+        LOGGER.log(Level.INFO, "Found 1 shelf: " + matchingShelves.get(0));
+        bookGrid.setItems(filterShelf(matchingShelves.get(0)));
     }
 
-    private void configureFilters() {
-        filterByAuthorName();
-        filterByBookTitle();
-    }
-
-    private void filterByAuthorName() {
-        filterByAuthorName.setPlaceholder("Filter by Author Name");
-        filterByAuthorName.setClearButtonVisible(true);
-        filterByAuthorName.setValueChangeMode(ValueChangeMode.LAZY);
-        filterByAuthorName.addValueChangeListener(eventFilterAuthorName -> {
-            if (eventFilterAuthorName.getValue() != null) {
-                authorName = eventFilterAuthorName.getValue();
-            }
-            updateGrid();
-        });
-    }
-
-    private void filterByBookTitle() {
-        filterByTitle.setPlaceholder("Filter by book title");
-        filterByTitle.setClearButtonVisible(true);
-        filterByTitle.setValueChangeMode(ValueChangeMode.LAZY);
-        filterByTitle.addValueChangeListener(event -> {
-            if (event.getValue() != null) {
-                bookTitle = event.getValue();
-            }
-            updateGrid();
-        });
+    private List<Book> filterShelf(PredefinedShelf selectedShelf) {
+        return selectedShelf.getBooks().stream()
+                .filter(book -> bookFilters.apply(book))
+                .collect(Collectors.toList());
     }
 }
