@@ -50,14 +50,6 @@ public class BooksInShelfView extends VerticalLayout {
     // TODO: 3.08.2020 Encapsulate these variables. visibility should be package-access
     // todo: bu branchte çok fazla eleman var cherry-pick ile buradan tek tek toparlayacağım cımmit ler ve gidip başka bir branchte pushlayacağım
     // TODO: 3.08.2020 ardından da pr açılacak
-    public static final String TITLE_KEY = "title";
-    public static final String AUTHOR_KEY = "author";
-    public static final String GENRE_KEY = "genre";
-    public static final String PAGES_KEY = "numberOfPages";
-    public static final String PAGES_READ_KEY = "pagesRead";
-    public static final String RATING_KEY = "rating";
-    public static final String DATE_STARTED_KEY = "dateStartedReading";
-    public static final String DATE_FINISHED_KEY = "dateFinishedReading";
 
     public final BookGrid bookGrid;
     public final BookShelfComboBox whichShelf;
