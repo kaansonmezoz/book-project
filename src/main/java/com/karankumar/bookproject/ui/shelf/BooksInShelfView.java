@@ -97,7 +97,7 @@ public class BooksInShelfView extends VerticalLayout {
         add(bookForm);
 
         new BookSaveListener(bookService, this).bind(bookForm);
-        bookForm.addListener(BookForm.DeleteEvent.class, this::deleteBook);
+        new BookDeleteListener(bookService, this).bind(bookForm);
     }
 
     private void configureChosenShelf() {
@@ -226,11 +226,4 @@ public class BooksInShelfView extends VerticalLayout {
             updateGrid();
         });
     }
-
-    private void deleteBook(BookForm.DeleteEvent event) {
-        LOGGER.log(Level.INFO, "Deleting book...");
-        bookService.delete(event.getBook());
-        updateGrid();
-    }
-
 }
