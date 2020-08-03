@@ -15,21 +15,20 @@
 
 package com.karankumar.bookproject.ui.shelf;
 
-import com.karankumar.bookproject.backend.entity.Book;
 import com.karankumar.bookproject.backend.entity.PredefinedShelf;
 import com.karankumar.bookproject.backend.service.BookService;
 import com.karankumar.bookproject.backend.service.PredefinedShelfService;
 import com.karankumar.bookproject.ui.MainView;
 import com.karankumar.bookproject.ui.book.BookForm;
-import com.karankumar.bookproject.ui.shelf.listener.*;
+import com.karankumar.bookproject.ui.shelf.component.AuthorFilterText;
+import com.karankumar.bookproject.ui.shelf.component.BookShelfComboBox;
+import com.karankumar.bookproject.ui.shelf.component.TitleFilterText;
+import com.karankumar.bookproject.ui.shelf.listener.BookDeleteListener;
+import com.karankumar.bookproject.ui.shelf.listener.BookSaveListener;
 import com.karankumar.bookproject.ui.shelf.visibility.*;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
@@ -60,36 +59,37 @@ public class BooksInShelfView extends VerticalLayout {
     public static final String DATE_STARTED_KEY = "dateStartedReading";
     public static final String DATE_FINISHED_KEY = "dateFinishedReading";
 
-    public final Grid<Book> bookGrid;
-    public final ComboBox<PredefinedShelf.ShelfName> whichShelf;
+    public final BookGrid bookGrid;
+    public final BookShelfComboBox whichShelf;
 
     private final EnumMap<PredefinedShelf.ShelfName, BookVisibilityStrategy> visibilityStrategies;
 
     private final BookForm bookForm;
-    private final BookService bookService;
     private final PredefinedShelfService shelfService;
-    private final TextField filterByTitle;
-    private final TextField filterByAuthorName;
+    private final TitleFilterText filterByTitle;
+    private final AuthorFilterText filterByAuthorName;
 
     private PredefinedShelf.ShelfName chosenShelf;
     private final BookFilters bookFilters;
 
     public BooksInShelfView(BookService bookService, PredefinedShelfService shelfService) {
-        this.bookService = bookService;
         this.shelfService = shelfService;
         this.visibilityStrategies = initVisibilityStrategies();
-        this.bookGrid = new Grid<>(Book.class);
+        this.bookGrid = new BookGrid();
         this.bookFilters = new BookFilters();
 
-        this.whichShelf = initializeChosenShelf();
-        this.filterByTitle = initializeFilterByTitle();
-        this.filterByAuthorName = initializeFilterByAuthorName();
-        HorizontalLayout layout = initializeLayout(whichShelf, filterByTitle, filterByAuthorName);
-        add(layout, bookGrid);
+        this.whichShelf = new BookShelfComboBox();
+        this.filterByTitle = new TitleFilterText();
+        this.filterByAuthorName = new AuthorFilterText();
+
+        filterByTitle.bind(this);
+        filterByAuthorName.bind(this);
+
+        add(initializeLayout(), bookGrid.get());
 
         bookForm = new BookForm(shelfService);
 
-        configureBookGrid();
+        bookGrid.bind(bookForm);
 
         add(bookForm);
 
@@ -99,8 +99,6 @@ public class BooksInShelfView extends VerticalLayout {
     private void bindListeners(BookService bookService) {
         new BookSaveListener(bookService, this).bind(bookForm);
         new BookDeleteListener(bookService, this).bind(bookForm);
-        new BookShelfListener(this).bind(whichShelf);
-        new BookFilterListener(this).bind(filterByTitle, filterByAuthorName);
     }
 
     private EnumMap<PredefinedShelf.ShelfName, BookVisibilityStrategy> initVisibilityStrategies() {
@@ -113,44 +111,19 @@ public class BooksInShelfView extends VerticalLayout {
         return m;
     }
 
-    private TextField initializeFilterByAuthorName() {
-        TextField filterByAuthorName = new TextField();
-
-        filterByAuthorName.setPlaceholder("Filter by Author Name");
-        filterByAuthorName.setClearButtonVisible(true);
-        filterByAuthorName.setValueChangeMode(ValueChangeMode.LAZY);
-
-        return filterByAuthorName;
-    }
-
-    private TextField initializeFilterByTitle() {
-        TextField filterByTitle = new TextField();
-
-        filterByTitle.setPlaceholder("Filter by book title");
-        filterByTitle.setClearButtonVisible(true);
-        filterByTitle.setValueChangeMode(ValueChangeMode.LAZY);
-
-        return filterByTitle;
-    }
-
-    private HorizontalLayout initializeLayout(ComboBox<PredefinedShelf.ShelfName> whichShelf, TextField filterByTitle, TextField filterByAuthorName) {
+    private HorizontalLayout initializeLayout() {
         Button addBook = new Button("Add book");
         addBook.addClickListener(e -> bookForm.addBook());
 
-        HorizontalLayout horizontalLayout = new HorizontalLayout(whichShelf, filterByTitle, filterByAuthorName, addBook);
-        horizontalLayout.setAlignItems(Alignment.END);
+        HorizontalLayout layout = new HorizontalLayout(addBook);
 
-        return horizontalLayout;
-    }
+        filterByTitle.addToLayout(layout);
+        filterByAuthorName.addToLayout(layout);
+        whichShelf.addToLayout(layout);
 
-    private ComboBox<PredefinedShelf.ShelfName> initializeChosenShelf() {
-        ComboBox<PredefinedShelf.ShelfName> whichShelf = new ComboBox<>();
+        layout.setAlignItems(Alignment.END);
 
-        whichShelf.setPlaceholder("Select shelf");
-        whichShelf.setItems(PredefinedShelf.ShelfName.values());
-        whichShelf.setRequired(true);
-
-        return whichShelf;
+        return layout;
     }
 
     /**
@@ -158,7 +131,6 @@ public class BooksInShelfView extends VerticalLayout {
      */
     // TODO: 3.08.2020 this should be moved BookShelfListener. But it's also invoked in the test.
     public void showOrHideGridColumns(PredefinedShelf.ShelfName shelfName) throws NotSupportedException {
-        BookGrid bookGrid = new BookGrid(this.bookGrid);
         visibilityStrategies.get(shelfName);
 
         if (visibilityStrategies.containsKey(shelfName)) {
@@ -168,13 +140,7 @@ public class BooksInShelfView extends VerticalLayout {
         visibilityStrategies.get(shelfName).toggleColumnVisibility(bookGrid);
     }
 
-
-    private void configureBookGrid() {
-        new BookGrid(this.bookGrid).configure(new BookGridListener(bookForm));
-    }
-
     public void updateGrid() {
-        BookGrid bookGrid = new BookGrid(this.bookGrid);
         bookGrid.update(chosenShelf, shelfService, bookFilters);
     }
 
