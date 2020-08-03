@@ -154,6 +154,7 @@ public class BooksInShelfView extends VerticalLayout {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     private void toggleColumnVisibility(String columnKey, boolean showColumn) {
         if (bookGrid.getColumnByKey(columnKey) == null) {
             LOGGER.log(Level.SEVERE, "Key is null:" + columnKey);
@@ -171,6 +172,8 @@ public class BooksInShelfView extends VerticalLayout {
         }
         return result;
     }
+=======
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 =======
 >>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 

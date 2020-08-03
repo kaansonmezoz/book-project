@@ -2,9 +2,14 @@ package com.karankumar.bookproject.ui.shelf;
 
 import com.karankumar.bookproject.backend.entity.Book;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.karankumar.bookproject.backend.entity.PredefinedShelf;
 import com.karankumar.bookproject.backend.service.PredefinedShelfService;
 import com.karankumar.bookproject.ui.shelf.listener.BookGridListener;
+=======
+import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.HasValue;
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 =======
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.HasValue;
@@ -17,11 +22,16 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Comparator;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.util.List;
+=======
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 =======
 >>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+
+import static com.karankumar.bookproject.ui.shelf.BooksInShelfView.*;
 
 import static com.karankumar.bookproject.ui.shelf.BooksInShelfView.*;
 
@@ -37,7 +47,11 @@ public class BookGrid {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     public void configure(BookGridListener listener) {
+=======
+    public void configure(HasValue.ValueChangeListener<? super AbstractField.ComponentValueChangeEvent<Grid<Book>, Book>> listener) {
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 =======
     public void configure(HasValue.ValueChangeListener<? super AbstractField.ComponentValueChangeEvent<Grid<Book>, Book>> listener) {
 >>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
@@ -56,8 +70,13 @@ public class BookGrid {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     private void addListener(BookGridListener listener) {
         bookGrid.asSingleSelect().addValueChangeListener(listener.getListener());
+=======
+    private void addListener(HasValue.ValueChangeListener listener) {
+        bookGrid.asSingleSelect().addValueChangeListener(listener);
+>>>>>>> 90f05f5... Moved configureBookGrid to BookGrid
 =======
     private void addListener(HasValue.ValueChangeListener listener) {
         bookGrid.asSingleSelect().addValueChangeListener(listener);
