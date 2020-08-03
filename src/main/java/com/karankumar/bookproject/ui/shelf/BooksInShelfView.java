@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 @PageTitle("My Books | Book Project")
 @Log
 public class BooksInShelfView extends VerticalLayout {
-    // TODO: 3.08.2020 Encapsulate these variables. visibility should be package-access 
+    // TODO: 3.08.2020 Encapsulate these variables. visibility should be package-access
     public static final String TITLE_KEY = "title";
     public static final String AUTHOR_KEY = "author";
     public static final String GENRE_KEY = "genre";
