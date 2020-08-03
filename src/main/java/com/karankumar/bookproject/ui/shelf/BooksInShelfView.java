@@ -96,7 +96,7 @@ public class BooksInShelfView extends VerticalLayout {
 
         add(bookForm);
 
-        bookForm.addListener(BookForm.SaveEvent.class, this::saveBook);
+        new BookSaveListener(bookService, this).bind(bookForm);
         bookForm.addListener(BookForm.DeleteEvent.class, this::deleteBook);
     }
 
@@ -161,7 +161,7 @@ public class BooksInShelfView extends VerticalLayout {
         new BookGrid(this.bookGrid).configure(new BookGridListener(bookForm));
     }
 
-    private void updateGrid() {
+    public void updateGrid() {
         if (chosenShelf == null) {
             LOGGER.log(Level.FINEST, "Chosen shelf is null");
             return;
@@ -233,14 +233,4 @@ public class BooksInShelfView extends VerticalLayout {
         updateGrid();
     }
 
-    private void saveBook(BookForm.SaveEvent event) {
-        LOGGER.log(Level.INFO, "Saving book...");
-        if (event.getBook() == null) {
-            LOGGER.log(Level.SEVERE, "Retrieved book from event is null");
-        } else {
-            LOGGER.log(Level.INFO, "Book is not null");
-            bookService.save(event.getBook());
-            updateGrid();
-        }
-    }
 }
